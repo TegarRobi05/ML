@@ -13,6 +13,8 @@ from wordcloud import WordCloud
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+import nltk
+
 # Download NLTK data (if not already downloaded)
 try:
     nltk.data.find('tokenizers/punkt')
@@ -203,7 +205,7 @@ elif menu_selection == "Preprocessing":
 # df_processed['stemmed_text'] = df_processed['full_text'].apply(stem_text)
             """)
 
-    st.subheader("Word Cloud of Processed Text")
+        st.subheader("Word Cloud of Processed Text")
         all_words = ' '.join([str(text) for text in df_processed['full_text']])
         if all_words:
             wordcloud = WordCloud(width=800, height=400, background_color='white', stopwords=STOPWORDS).generate(all_words)
@@ -213,7 +215,6 @@ elif menu_selection == "Preprocessing":
             st.pyplot(fig)
         else:
             st.info("No text available to generate word cloud. Please apply preprocessing steps.")
-
 
 
 # --- Labeling Page ---

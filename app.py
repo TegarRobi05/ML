@@ -16,8 +16,9 @@ import seaborn as sns
 # Download NLTK data (if not already downloaded)
 try:
     nltk.data.find('tokenizers/punkt')
-except nltk.downloader.DownloadError:
+except LookupError:
     nltk.download('punkt')
+
 
 # --- Configuration ---
 st.set_page_config(

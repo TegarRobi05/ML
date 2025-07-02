@@ -1,0 +1,10 @@
+pandas
+streamlit
+scikit-learn
+textblob
+Sastrawi
+nltk
+wordcloud
+matplotlib
+seaborn
+regex

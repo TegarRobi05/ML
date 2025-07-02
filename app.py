@@ -9,7 +9,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, classification_report
-from wordcloud import WordCloud, STOPWORDS
+from wordcloud import WordCloud, STOPWORDS      # ✅ sudah lengkap
 import matplotlib.pyplot as plt
 import seaborn as sns
 from nltk.tokenize import wordpunct_tokenize
@@ -48,17 +48,6 @@ df_raw = load_data('film_jumbo.csv')
 # Assuming you saved these files after processing in Colab
 df_stemmed = load_data('StemmingJumbo.csv')
 df_translated_labeled = load_data('translateJumboo.csv')
-
-# --- Debugging: Inspect df_translated_labeled ---
-# Add these lines to see what's inside df_translated_labeled
-# st.write("--- Debugging df_translated_labeled ---")
-# st.write("Is df_translated_labeled empty?", df_translated_labeled.empty)
-# st.write("Columns in df_translated_labeled:", df_translated_labeled.columns.tolist())
-# if not df_translated_labeled.empty:
-#     st.write("First 5 rows of df_translated_labeled:")
-#     st.dataframe(df_translated_labeled.head())
-# st.write("--- End Debugging ---")
-
 
 # --- Preprocessing Functions (from your Colab notebook) ---
 
@@ -131,7 +120,7 @@ def remove_stopwords(text):
 def tokenize_text(text):
     if not isinstance(text, str):
         return []
-    return wordpunct_tokenize(text)
+    return wordpunct_tokenize(text) 
 
 # Stemming (assuming you have a stemmed CSV, otherwise you'd need a stemmer here)
 # For demonstration, we'll use the pre-stemmed data if available.
@@ -282,19 +271,10 @@ elif menu_selection == "Classification":
     st.title("Naive Bayes Classification")
     st.write("Train a Naive Bayes model on the sentiment-labeled data.")
 
-    # Check if df_translated_labeled is loaded and has the required columns
-    if df_translated_labeled.empty:
-        st.warning("`hasil_klasifikasi.csv` is empty or not loaded. Please check the file path and content.")
-    elif 'english_tweet' not in df_translated_labeled.columns:
-        st.warning("Column 'english_tweet' not found in `translateJumboo.csv`. Please check column names.")
-    elif 'label' not in df_translated_labeled.columns:
-        st.warning("Column 'label' not found in `translateJumboo.csv`. Please check column names.")
-    else:
-        # Proceed with classification if all checks pass
+    if not df_translated_labeled.empty and 'english_tweet' in df_translated_labeled.columns and 'label' in df_translated_labeled.columns:
         # Prepare data for classification
-        x = df_translated_labeled['label']
-        y = df_translated_labeled['english_tweet'].astype(str) # Ensure text is string
-        
+        X = df_translated_labeled['english_tweet'].astype(str) # Ensure text is string
+        y = df_translated_labeled['label']
 
         # TF-IDF Vectorization
         tfidf_vectorizer = TfidfVectorizer()
@@ -316,13 +296,9 @@ elif menu_selection == "Classification":
         st.write("Naive Bayes Classifier has been trained on the TF-IDF vectorized text data.")
 
         st.subheader("Sample Predictions (First 5 from Test Set)")
-        # Ensure that the indices used for sample_texts and original_text_lookup are valid
-        # and correspond to the original DataFrame's indices.
-        # When using train_test_split, the indices of y_test are preserved from the original DataFrame.
-        original_indices_test = y_test.index[:5] # Get original indices of the first 5 test samples
-
+        sample_texts = tfidf_vectorizer.inverse_transform(X_test[:5])
         sample_df = pd.DataFrame({
-            'Original Text (English)': [df_translated_labeled.loc[idx, 'english_tweet'] for idx in original_indices_test],
+            'Original Text (English)': [df_translated_labeled.loc[idx, 'english_tweet'] for idx in y_test.index[:5]],
             'True Label': y_test.iloc[:5].values,
             'Predicted Label': y_pred[:5]
         })
@@ -333,6 +309,11 @@ elif menu_selection == "Classification":
         st.session_state['X_test'] = X_test
         st.session_state['y_test'] = y_test
         st.session_state['y_pred'] = y_pred
+
+    else:
+        st.warning("Cannot perform classification. Please ensure 'translateJumboo.csv' is loaded and contains 'english_tweet' and 'label' columns.")
+        st.info("Go to the 'Labeling' section to ensure data is loaded and processed.")
+
 
 # --- Model Evaluation Page ---
 elif menu_selection == "Model Evaluation":
@@ -362,12 +343,9 @@ elif menu_selection == "Model Evaluation":
 
         st.subheader("Confusion Matrix")
         from sklearn.metrics import confusion_matrix
-        # Ensure labels are consistent with those in y_test and y_pred
-        # Get unique labels from y_test and sort them for consistent plotting
-        unique_labels = sorted(y_test.unique())
-        cm = confusion_matrix(y_test, y_pred, labels=unique_labels)
+        cm = confusion_matrix(y_test, y_pred, labels=['Positive', 'Neutral', 'Negative'])
         fig, ax = plt.subplots(figsize=(8, 6))
-        sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=unique_labels, yticklabels=unique_labels, ax=ax)
+        sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=['Positive', 'Neutral', 'Negative'], yticklabels=['Positive', 'Neutral', 'Negative'], ax=ax)
         ax.set_xlabel('Predicted')
         ax.set_ylabel('True')
         ax.set_title('Confusion Matrix')

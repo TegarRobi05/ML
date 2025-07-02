@@ -273,38 +273,45 @@ elif menu_selection == "Classification":
     st.title("Naive Bayes Classification")
     st.write("Train a Naive Bayes model on the sentiment‑labeled data.")
 
-    # 👉 1) Salin dan rapikan DataFrame
+    # 1) Salin dan rapikan DataFrame
     df_clf = df_translated_labeled.copy()
     df_clf.columns = df_clf.columns.str.strip().str.lower()
 
-    # 👉 2) Rename otomatis jika nama kolom tidak persis
-    if 'label' not in df_clf.columns:
-        cand = [c for c in df_clf.columns if 'label' in c]
-        if cand: df_clf.rename(columns={cand[0]: 'label'}, inplace=True)
+    # Hilangkan kolom index otomatis jika ada
+    if 'unnamed: 0' in df_clf.columns:
+        df_clf.drop(columns=['unnamed: 0'], inplace=True)
 
+    # 2) Pastikan nama kolom pas
     if 'english_tweet' not in df_clf.columns:
         cand = [c for c in df_clf.columns if 'tweet' in c]
-        if cand: df_clf.rename(columns={cand[0]: 'english_tweet'}, inplace=True)
+        if cand:
+            df_clf.rename(columns={cand[0]: 'english_tweet'}, inplace=True)
+    if 'label' not in df_clf.columns:
+        cand = [c for c in df_clf.columns if 'label' in c]
+        if cand:
+            df_clf.rename(columns={cand[0]: 'label'}, inplace=True)
 
-    # 👉 3) Tampilkan debug ringkas di sidebar
+    # 3) Debug ringkas
     with st.sidebar.expander("🛠 Debug Classification"):
         st.write("Columns:", df_clf.columns.tolist())
         st.write("Shape:", df_clf.shape)
         st.dataframe(df_clf.head())
 
-    # 👉 4) Lanjut jika kolom wajib ada
     required_cols = {'english_tweet', 'label'}
     if not df_clf.empty and required_cols.issubset(df_clf.columns):
 
-        # Buang baris dengan NaN / label kosong
+        # Buang baris kosong
         df_clf = df_clf.dropna(subset=['english_tweet', 'label'])
         if df_clf.empty:
             st.error("Semua baris kosong setelah drop NaN.")
             st.stop()
 
-        # Prepare data
+        # 💡 Normalisasi label ➜ huruf kecil & strip
+        df_clf['label'] = df_clf['label'].astype(str).str.lower().str.strip()
+
+        # Siapkan X‑y
         X = df_clf['english_tweet'].astype(str)
-        y = df_clf['label'].astype(str)
+        y = df_clf['label']
 
         # TF‑IDF
         tfidf_vectorizer = TfidfVectorizer()
@@ -326,7 +333,7 @@ elif menu_selection == "Classification":
 
         st.success("✅ Naive Bayes model trained!")
 
-        # Sample predictions
+        # Contoh prediksi
         sample_df = pd.DataFrame({
             'Text': tfidf_vectorizer.inverse_transform(X_test[:5]),
             'True': y_test.iloc[:5].values,
@@ -335,7 +342,7 @@ elif menu_selection == "Classification":
         st.subheader("Sample predictions")
         st.dataframe(sample_df)
 
-        # Store to session_state
+        # Simpan ke session_state
         st.session_state.update({
             'model': model,
             'X_test': X_test,
@@ -344,48 +351,37 @@ elif menu_selection == "Classification":
         })
 
     else:
-        st.warning(
-            "Cannot perform classification. Kolom 'english_tweet' dan/atau 'label' "
-            "tidak ditemukan di translateJumboo.csv."
-        )
+        st.warning("Kolom 'english_tweet' dan/atau 'label' tidak ditemukan.")
         st.info("Periksa file di menu 'Labeling' atau lihat debug di sidebar.")
 
-# --- Model Evaluation Page ---
+# --- Model Evaluation Page --------------------------------------------------
 elif menu_selection == "Model Evaluation":
     st.title("Model Evaluation")
     st.write("Evaluate the performance of the trained Naive Bayes model.")
 
-    if 'model' in st.session_state and 'X_test' in st.session_state and 'y_test' in st.session_state and 'y_pred' in st.session_state:
-        model = st.session_state['model']
-        X_test = st.session_state['X_test']
+    if all(k in st.session_state for k in ['model', 'X_test', 'y_test', 'y_pred']):
         y_test = st.session_state['y_test']
         y_pred = st.session_state['y_pred']
 
         st.subheader("Evaluation Metrics")
-        accuracy = accuracy_score(y_test, y_pred)
-        precision = precision_score(y_test, y_pred, average='weighted', zero_division=0)
-        recall = recall_score(y_test, y_pred, average='weighted', zero_division=0)
-        f1 = f1_score(y_test, y_pred, average='weighted', zero_division=0)
-
-        st.write(f"**Accuracy:** {accuracy:.4f}")
-        st.write(f"**Precision:** {precision:.4f}")
-        st.write(f"**Recall:** {recall:.4f}")
-        st.write(f"**F1-Score:** {f1:.4f}")
+        st.write(f"**Accuracy:**  {accuracy_score(y_test, y_pred):.4f}")
+        st.write(f"**Precision:** {precision_score(y_test, y_pred, average='weighted', zero_division=0):.4f}")
+        st.write(f"**Recall:**    {recall_score(y_test, y_pred, average='weighted', zero_division=0):.4f}")
+        st.write(f"**F1‑Score:**  {f1_score(y_test, y_pred, average='weighted', zero_division=0):.4f}")
 
         st.subheader("Classification Report")
-        report = classification_report(y_test, y_pred, zero_division=0)
-        st.text(report)
+        st.text(classification_report(y_test, y_pred, zero_division=0))
 
         st.subheader("Confusion Matrix")
         from sklearn.metrics import confusion_matrix
-        cm = confusion_matrix(y_test, y_pred, labels=['Positive', 'Neutral', 'Negative'])
+        labels_cm = ['positif', 'netral', 'negatif']   # sesuai label lower‑case
+        cm = confusion_matrix(y_test, y_pred, labels=labels_cm)
         fig, ax = plt.subplots(figsize=(8, 6))
-        sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=['Positive', 'Neutral', 'Negative'], yticklabels=['Positive', 'Neutral', 'Negative'], ax=ax)
+        sns.heatmap(cm, annot=True, fmt='d', cmap='Blues',
+                    xticklabels=labels_cm, yticklabels=labels_cm, ax=ax)
         ax.set_xlabel('Predicted')
         ax.set_ylabel('True')
         ax.set_title('Confusion Matrix')
         st.pyplot(fig)
-
     else:
-        st.warning("Model not trained yet. Please go to the 'Classification' section to train the model first.")
-
+        st.warning("Model not trained yet. Silakan latih di menu 'Classification' terlebih dahulu.")

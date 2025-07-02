@@ -284,7 +284,7 @@ elif menu_selection == "Classification":
 
     # Check if df_translated_labeled is loaded and has the required columns
     if df_translated_labeled.empty:
-        st.warning("`translateJumboo.csv` is empty or not loaded. Please check the file path and content.")
+        st.warning("`hasil_klasifikasi.csv` is empty or not loaded. Please check the file path and content.")
     elif 'english_tweet' not in df_translated_labeled.columns:
         st.warning("Column 'english_tweet' not found in `translateJumboo.csv`. Please check column names.")
     elif 'label' not in df_translated_labeled.columns:

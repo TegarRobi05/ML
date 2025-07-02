@@ -12,6 +12,7 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_sc
 from wordcloud import WordCloud
 import matplotlib.pyplot as plt
 import seaborn as sns
+from nltk.tokenize import wordpunct_tokenize
 
 import nltk
 
@@ -118,7 +119,7 @@ def remove_stopwords(text):
 def tokenize_text(text):
     if not isinstance(text, str):
         return []
-    return nltk.word_tokenize(text)
+    return wordpunct_tokenize(text) 
 
 # Stemming (assuming you have a stemmed CSV, otherwise you'd need a stemmer here)
 # For demonstration, we'll use the pre-stemmed data if available.

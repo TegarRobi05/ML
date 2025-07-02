@@ -268,54 +268,87 @@ elif menu_selection == "Labeling":
                    "Please ensure this file is available and correctly formatted.")
         st.info("To perform live translation and labeling, you would need to integrate a translation API (e.g., Google Translate API) and TextBlob.")
 
-# --- Classification Page ---
+# --- Classification Page ----------------------------------------------------
 elif menu_selection == "Classification":
     st.title("Naive Bayes Classification")
-    st.write("Train a Naive Bayes model on the sentiment-labeled data.")
+    st.write("Train a Naive Bayes model on the sentiment‑labeled data.")
 
-    if not df_translated_labeled.empty and 'english_tweet' in df_translated_labeled.columns and 'label' in df_translated_labeled.columns:
-        # Prepare data for classification
-        X = df_translated_labeled['english_tweet'].astype(str) # Ensure text is string
-        y = df_translated_labeled['label']
+    # 👉 1) Salin dan rapikan DataFrame
+    df_clf = df_translated_labeled.copy()
+    df_clf.columns = df_clf.columns.str.strip().str.lower()
 
-        # TF-IDF Vectorization
+    # 👉 2) Rename otomatis jika nama kolom tidak persis
+    if 'label' not in df_clf.columns:
+        cand = [c for c in df_clf.columns if 'label' in c]
+        if cand: df_clf.rename(columns={cand[0]: 'label'}, inplace=True)
+
+    if 'english_tweet' not in df_clf.columns:
+        cand = [c for c in df_clf.columns if 'tweet' in c]
+        if cand: df_clf.rename(columns={cand[0]: 'english_tweet'}, inplace=True)
+
+    # 👉 3) Tampilkan debug ringkas di sidebar
+    with st.sidebar.expander("🛠 Debug Classification"):
+        st.write("Columns:", df_clf.columns.tolist())
+        st.write("Shape:", df_clf.shape)
+        st.dataframe(df_clf.head())
+
+    # 👉 4) Lanjut jika kolom wajib ada
+    required_cols = {'english_tweet', 'label'}
+    if not df_clf.empty and required_cols.issubset(df_clf.columns):
+
+        # Buang baris dengan NaN / label kosong
+        df_clf = df_clf.dropna(subset=['english_tweet', 'label'])
+        if df_clf.empty:
+            st.error("Semua baris kosong setelah drop NaN.")
+            st.stop()
+
+        # Prepare data
+        X = df_clf['english_tweet'].astype(str)
+        y = df_clf['label'].astype(str)
+
+        # TF‑IDF
         tfidf_vectorizer = TfidfVectorizer()
         X_tfidf = tfidf_vectorizer.fit_transform(X)
 
-        # Split data
-        X_train, X_test, y_train, y_test = train_test_split(X_tfidf, y, test_size=0.2, random_state=42)
+        # Split
+        X_train, X_test, y_train, y_test = train_test_split(
+            X_tfidf, y, test_size=0.2, random_state=42, stratify=y
+        )
 
-        st.write(f"Training data size: {X_train.shape[0]}")
-        st.write(f"Test data size: {X_test.shape[0]}")
-        st.write(f"Number of features (TF-IDF): {X_tfidf.shape[1]}")
+        st.write(f"Training size: {X_train.shape[0]}")
+        st.write(f"Test size: {X_test.shape[0]}")
+        st.write(f"TF‑IDF features: {X_tfidf.shape[1]}")
 
-        # Train Naive Bayes Model
+        # Train model
         model = MultinomialNB()
         model.fit(X_train, y_train)
         y_pred = model.predict(X_test)
 
-        st.subheader("Model Training Complete!")
-        st.write("Naive Bayes Classifier has been trained on the TF-IDF vectorized text data.")
+        st.success("✅ Naive Bayes model trained!")
 
-        st.subheader("Sample Predictions (First 5 from Test Set)")
-        sample_texts = tfidf_vectorizer.inverse_transform(X_test[:5])
+        # Sample predictions
         sample_df = pd.DataFrame({
-            'Original Text (English)': [df_translated_labeled.loc[idx, 'english_tweet'] for idx in y_test.index[:5]],
-            'True Label': y_test.iloc[:5].values,
-            'Predicted Label': y_pred[:5]
+            'Text': tfidf_vectorizer.inverse_transform(X_test[:5]),
+            'True': y_test.iloc[:5].values,
+            'Pred': y_pred[:5]
         })
+        st.subheader("Sample predictions")
         st.dataframe(sample_df)
 
-        # Store model and test data for evaluation page
-        st.session_state['model'] = model
-        st.session_state['X_test'] = X_test
-        st.session_state['y_test'] = y_test
-        st.session_state['y_pred'] = y_pred
+        # Store to session_state
+        st.session_state.update({
+            'model': model,
+            'X_test': X_test,
+            'y_test': y_test,
+            'y_pred': y_pred
+        })
 
     else:
-        st.warning("Cannot perform classification. Please ensure 'translateJumboo.csv' is loaded and contains 'english_tweet' and 'label' columns.")
-        st.info("Go to the 'Labeling' section to ensure data is loaded and processed.")
-
+        st.warning(
+            "Cannot perform classification. Kolom 'english_tweet' dan/atau 'label' "
+            "tidak ditemukan di translateJumboo.csv."
+        )
+        st.info("Periksa file di menu 'Labeling' atau lihat debug di sidebar.")
 
 # --- Model Evaluation Page ---
 elif menu_selection == "Model Evaluation":

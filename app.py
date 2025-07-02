@@ -270,11 +270,11 @@ elif menu_selection == "Labeling":
 elif menu_selection == "Classification":
     st.title("Naive Bayes Classification")
     st.write("Train a Naive Bayes model on the sentiment-labeled data.")
-    # Check for the actual column names in your CSV
-    if not df_translated_labeled.empty and 'tweet_text' in df_translated_labeled.columns and 'sentiment_label' in df_translated_labeled.columns:
+
+    if not df_translated_labeled.empty and 'english_tweet' in df_translated_labeled.columns and 'label' in df_translated_labeled.columns:
         # Prepare data for classification
-        X = df_translated_labeled['tweet_text'].astype(str) # Use your actual text column name
-        y = df_translated_labeled['sentiment_label'] # Use your actual label column name
+        X = df_translated_labeled['english_tweet'].astype(str) # Ensure text is string
+        y = df_translated_labeled['label']
 
         # TF-IDF Vectorization
         tfidf_vectorizer = TfidfVectorizer()
@@ -311,7 +311,7 @@ elif menu_selection == "Classification":
         st.session_state['y_pred'] = y_pred
 
     else:
-        st.warning("Cannot perform classification. Please ensure 'translateJumboo.csv' is loaded and contains the correct text and label columns (e.g., 'tweet_text' and 'sentiment_label').")
+        st.warning("Cannot perform classification. Please ensure 'translateJumboo.csv' is loaded and contains 'english_tweet' and 'label' columns.")
         st.info("Go to the 'Labeling' section to ensure data is loaded and processed.")
 
 

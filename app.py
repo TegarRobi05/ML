@@ -203,25 +203,16 @@ elif menu_selection == "Preprocessing":
 # df_processed['stemmed_text'] = df_processed['full_text'].apply(stem_text)
             """)
 
-    # Import STOPWORDS dari wordcloud
-from wordcloud import STOPWORDS
-
-# Kemudian dalam fungsi utama
-st.subheader("Word Cloud of Processed Text")
-all_words = ' '.join([str(text) for text in df_processed['full_text']])
-if all_words:
-    wordcloud = WordCloud(
-        width=800, 
-        height=400, 
-        background_color='white', 
-        stopwords=STOPWORDS
-    ).generate(all_words)
-    fig, ax = plt.subplots(figsize=(10, 5))
-    ax.imshow(wordcloud, interpolation='bilinear')
-    ax.axis('off')
-    st.pyplot(fig)
-else:
-    st.info("No text available to generate word cloud. Please apply preprocessing steps.")
+    st.subheader("Word Cloud of Processed Text")
+        all_words = ' '.join([str(text) for text in df_processed['full_text']])
+        if all_words:
+            wordcloud = WordCloud(width=800, height=400, background_color='white', stopwords=STOPWORDS).generate(all_words)
+            fig, ax = plt.subplots(figsize=(10, 5))
+            ax.imshow(wordcloud, interpolation='bilinear')
+            ax.axis('off')
+            st.pyplot(fig)
+        else:
+            st.info("No text available to generate word cloud. Please apply preprocessing steps.")
 
 
 

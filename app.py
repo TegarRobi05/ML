@@ -292,8 +292,9 @@ elif menu_selection == "Classification":
     else:
         # Proceed with classification if all checks pass
         # Prepare data for classification
-        X = df_translated_labeled['english_tweet'].astype(str) # Ensure text is string
-        y = df_translated_labeled['label']
+        x = df_translated_labeled['label']
+        y = df_translated_labeled['english_tweet'].astype(str) # Ensure text is string
+        
 
         # TF-IDF Vectorization
         tfidf_vectorizer = TfidfVectorizer()

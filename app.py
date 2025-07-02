@@ -272,6 +272,7 @@ elif menu_selection == "Classification":
     st.write("Train a Naive Bayes model on the sentiment-labeled data.")
 
     if not df_translated_labeled.empty and 'english_tweet' in df_translated_labeled.columns and 'label' in df_translated_labeled.columns:
+
         # Prepare data for classification
         X = df_translated_labeled['english_tweet'].astype(str) # Ensure text is string
         y = df_translated_labeled['label']

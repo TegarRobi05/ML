@@ -270,6 +270,10 @@ elif menu_selection == "Labeling":
 elif menu_selection == "Classification":
     st.title("Naive Bayes Classification")
     st.write("Train a Naive Bayes model on the sentiment-labeled data.")
+    st.write("📋 Available columns in translateJumboo.csv:", df_translated_labeled.columns.tolist())
+    st.write("🧪 First few rows of data:")
+    st.write(df_translated_labeled.head())
+
 
     if not df_translated_labeled.empty and 'english_tweet' in df_translated_labeled.columns and 'label' in df_translated_labeled.columns:
         # Prepare data for classification

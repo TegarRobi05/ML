@@ -314,6 +314,11 @@ elif menu_selection == "Classification":
         st.warning("Cannot perform classification. Please ensure 'translateJumboo.csv' is loaded and contains 'english_tweet' and 'label' columns.")
         st.info("Go to the 'Labeling' section to ensure data is loaded and processed.")
 
+df_test = pd.read_csv('translateJumboo.csv', encoding='latin1')
+print(df_test.columns)
+print(df_test.head())
+
+
 # --- Model Evaluation Page ---
 elif menu_selection == "Model Evaluation":
     st.title("Model Evaluation")

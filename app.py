@@ -48,6 +48,8 @@ df_raw = load_data('film_jumbo.csv')
 # Assuming you saved these files after processing in Colab
 df_stemmed = load_data('StemmingJumbo.csv')
 df_translated_labeled = load_data('translateJumboo.csv')
+df_translated_labeled.columns = df_translated_labeled.columns.str.strip()
+
 
 # --- Preprocessing Functions (from your Colab notebook) ---
 

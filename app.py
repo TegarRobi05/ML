@@ -9,10 +9,11 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, classification_report
-from wordcloud import WordCloud
+from wordcloud import WordCloud, STOPWORDS      # ✅ sudah lengkap
 import matplotlib.pyplot as plt
 import seaborn as sns
 from nltk.tokenize import wordpunct_tokenize
+
 
 import nltk
 
